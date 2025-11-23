@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CodeLens AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow@11.11.4/dist/style.css" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #0f172a;
+        color: #e2e8f0;
+        overflow: hidden;
+      }
+      .font-mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+      /* React Flow Customization Hooks */
+      .react-flow__node {
+        border: none;
+        background: transparent;
+      }
+      .react-flow__edge-path {
+        stroke: #475569;
+        stroke-width: 2;
+      }
+      .react-flow__controls {
+        box-shadow: none;
+        border: 1px solid #334155;
+        background: #1e293b;
+        border-radius: 8px;
+      }
+      .react-flow__controls-button {
+        background: #1e293b;
+        border-bottom: 1px solid #334155;
+        fill: #94a3b8;
+      }
+      .react-flow__controls-button:last-child {
+        border-bottom: none;
+      }
+      .react-flow__controls-button:hover {
+        background: #334155;
+        fill: #f8fafc;
+      }
+      .react-flow__attribution {
+        display: none;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "reactflow": "https://aistudiocdn.com/reactflow@^11.11.4",
+    "reactflow/": "https://aistudiocdn.com/reactflow@^11.11.4/",
+    "prop-types": "https://esm.sh/prop-types@15.8.1",
+    "recharts": "https://esm.sh/recharts@2.15.0?external=react,react-dom"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>
