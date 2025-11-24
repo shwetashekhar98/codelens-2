@@ -22,9 +22,10 @@ import SearchBar from './components/SearchBar';
 import AnalysisModal from './components/AnalysisModal';
 import { analyzeRepository, semanticSearch, generateDeepAnalysis } from './services/geminiService';
 import { dbService } from './services/dbService';
+import { initMCP, getMCPStatus } from './services/mcpIntegration';
 import { RepoNode, RepoAnalysis, ComplexityLevel, SearchResult, AnalysisMode } from './types';
 import { MOCK_REPO_SUGGESTIONS } from './constants';
-import { Loader2, Github, AlertCircle, Info, Clock, ArrowRight, Trash2, Save, Database } from 'lucide-react';
+import { Loader2, Github, AlertCircle, Info, Clock, ArrowRight, Trash2, Save, Database, Server } from 'lucide-react';
 
 const nodeTypes = {
   custom: CustomNode,
@@ -43,8 +44,25 @@ const FlowArea = () => {
     const [showAnalysisInfo, setShowAnalysisInfo] = useState(false);
     const [recentAnalyses, setRecentAnalyses] = useState<RepoAnalysis[]>([]);
     const [isSaving, setIsSaving] = useState(false);
+    const [mcpInitialized, setMcpInitialized] = useState(false);
 
     const { fitView, zoomTo } = useReactFlow();
+
+    // Initialize MCP servers on mount
+    useEffect(() => {
+        const initializeMCP = async () => {
+            try {
+                const status = await initMCP();
+                setMcpInitialized(status.initialized);
+                if (status.initialized) {
+                    console.log('✓ MCP servers ready:', status.servers.filter(s => s.connected).map(s => s.name).join(', '));
+                }
+            } catch (error) {
+                console.warn('MCP initialization failed:', error);
+            }
+        };
+        initializeMCP();
+    }, []);
 
     useEffect(() => {
         const loadHistory = async () => {
@@ -291,6 +309,15 @@ const FlowArea = () => {
         return (
             <div className="w-full h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#475569 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+                
+                {/* MCP Status Indicator */}
+                {mcpInitialized && (
+                    <div className="absolute top-4 right-4 z-20 flex items-center gap-2 bg-slate-900/80 border border-green-500/30 px-3 py-2 rounded-lg backdrop-blur-sm">
+                        <Server size={16} className="text-green-400 animate-pulse" />
+                        <span className="text-xs text-green-400 font-medium">MCP Active</span>
+                    </div>
+                )}
+                
                 <div className="z-10 max-w-3xl w-full flex flex-col items-center space-y-8">
                     <div className="text-center space-y-8 w-full">
                         <div className="inline-flex items-center justify-center p-4 bg-slate-900 rounded-full shadow-2xl mb-4 ring-1 ring-slate-700">
@@ -359,6 +386,12 @@ const FlowArea = () => {
                             {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Database size={14} />}
                             {isSaving ? "Auto-saving..." : "Synced"}
                         </div>
+                        {mcpInitialized && (
+                            <div className="flex items-center gap-2 bg-slate-900/80 border border-green-500/30 px-3 py-2 rounded-full backdrop-blur-sm shadow-lg">
+                                <Server size={14} className="text-green-400" />
+                                <span className="text-xs text-green-400 font-medium">MCP</span>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <SearchBar onSearch={handleSearch} isSearching={isSearching} searchResult={searchResult} />

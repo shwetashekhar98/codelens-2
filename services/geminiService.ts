@@ -1,15 +1,46 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { RepoAnalysis, ComplexityLevel, AnalysisMode } from "../types";
 import { dbService } from "./dbService";
+import { initializeMCPServers, callServerTool, listServerTools } from "../src/mcp/mcpService";
 
 const apiKey = process.env.API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
-// Helper to fetch real data from GitHub
+// Initialize MCP servers on module load
+let mcpInitialized = false;
+const initMCP = async () => {
+  if (!mcpInitialized) {
+    try {
+      await initializeMCPServers();
+      mcpInitialized = true;
+      console.log('✓ MCP servers initialized successfully');
+    } catch (error) {
+      console.warn('MCP initialization failed:', error);
+    }
+  }
+};
+
+// Helper to fetch real data from GitHub using MCP GitHub server if available
 async function fetchGithubData(repoName: string) {
+  // Try to use MCP GitHub server first
+  await initMCP();
+  
   try {
     const [owner, repo] = repoName.split('/');
     if (!owner || !repo) throw new Error("Invalid repo name");
+
+    // Try MCP GitHub server for enhanced access
+    if (mcpInitialized) {
+      try {
+        const repoData = await callServerTool('github', 'get_repository', {
+          owner,
+          repo
+        });
+        console.log('✓ Using MCP GitHub server for repository access');
+      } catch (mcpError) {
+        console.log('MCP GitHub server not available, falling back to REST API');
+      }
+    }
 
     const repoInfoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
     if (!repoInfoRes.ok) throw new Error("Repo not found");
@@ -217,10 +248,27 @@ export const generateDeepAnalysis = async (
     type: string, 
     mode: AnalysisMode
 ): Promise<string> => {
+    await initMCP();
     let context = `Repository: ${repoName}\nModule: ${path}\nType: ${type}`;
     
-    // Attempt to fetch code, but handle failure gracefully
-    if (type !== 'folder') {
+    // Try to use MCP filesystem server if analyzing local files
+    if (mcpInitialized && type !== 'folder') {
+        try {
+            const localPath = `/workspaces/codelens-2/${path}`;
+            const fileContent = await callServerTool('filesystem', 'read_file', {
+                path: localPath
+            });
+            if (fileContent) {
+                console.log('✓ Using MCP filesystem server for file access');
+                context += `\n\nCode (via MCP):\n${JSON.stringify(fileContent).slice(0, 10000)}`;
+            }
+        } catch (mcpError) {
+            console.log('MCP filesystem not available for this file, using GitHub API');
+        }
+    }
+    
+    // Attempt to fetch code from GitHub, but handle failure gracefully
+    if (type !== 'folder' && !context.includes('Code (via MCP)')) {
         try {
             const rawUrl = `https://raw.githubusercontent.com/${repoName}/${branch}/${path}`;
             const res = await fetch(rawUrl);
@@ -295,6 +343,21 @@ export const generateDeepAnalysis = async (
 };
 
 export const semanticSearch = async (query: string, nodes: any[], fileMap?: string[]): Promise<{ nodeId: string; path: string[]; answer: string } | null> => {
+    await initMCP();
+    
+    // Try to use MCP memory server to store search queries
+    if (mcpInitialized) {
+        try {
+            await callServerTool('memory', 'store', {
+                key: `search_${Date.now()}`,
+                value: JSON.stringify({ query, timestamp: new Date().toISOString() })
+            });
+            console.log('✓ Search query stored in MCP memory');
+        } catch (mcpError) {
+            console.log('MCP memory storage not available');
+        }
+    }
+    
     const nodeContext = nodes.map(n => {
         return `ID: ${n.id} | PATH: ${n.data.fullPath} | SUMMARY: ${n.data.summary}`;
     }).join('\n');
