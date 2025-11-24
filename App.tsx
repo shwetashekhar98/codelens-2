@@ -1,19 +1,19 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import ReactFlow, {
-  Background,
-  BackgroundVariant,
-  Controls,
-  Edge,
-  applyNodeChanges,
-  applyEdgeChanges,
-  NodeChange,
-  EdgeChange,
-  ConnectionMode,
-  useNodesState,
-  useEdgesState,
-  ReactFlowProvider,
-  useReactFlow,
-  MarkerType
+    Background,
+    BackgroundVariant,
+    Controls,
+    Edge,
+    applyNodeChanges,
+    applyEdgeChanges,
+    NodeChange,
+    EdgeChange,
+    ConnectionMode,
+    useNodesState,
+    useEdgesState,
+    ReactFlowProvider,
+    useReactFlow,
+    MarkerType
 } from 'reactflow';
 
 import CustomNode from './components/CustomNode';
@@ -28,7 +28,7 @@ import { MOCK_REPO_SUGGESTIONS } from './constants';
 import { Loader2, Github, AlertCircle, Info, Clock, ArrowRight, Trash2, Save, Database, Server } from 'lucide-react';
 
 const nodeTypes = {
-  custom: CustomNode,
+    custom: CustomNode,
 };
 
 const FlowArea = () => {
@@ -70,7 +70,7 @@ const FlowArea = () => {
             setRecentAnalyses(history);
         };
         loadHistory();
-    }, [repoAnalysis]); 
+    }, [repoAnalysis]);
 
     const persistChanges = useCallback(async (updatedNodes: RepoNode[], updatedEdges: Edge[], currentAnalysis: RepoAnalysis | null) => {
         if (!currentAnalysis) return;
@@ -87,25 +87,25 @@ const FlowArea = () => {
             if (!parentNode || !repoAnalysis?.fileMap) return currentNodes;
 
             let nextNodes = [...currentNodes];
-            let nextEdges = [...edges]; 
+            let nextEdges = [...edges];
 
             const isExpanded = parentNode.data.expanded;
             const prefix = fullPath.endsWith('/') ? fullPath : `${fullPath}/`;
 
             if (isExpanded) {
-                const childrenToRemove = currentNodes.filter(n => 
+                const childrenToRemove = currentNodes.filter(n =>
                     n.data.fullPath !== fullPath && n.data.fullPath?.startsWith(prefix)
                 );
                 const childIds = new Set(childrenToRemove.map(n => n.id));
-                
+
                 nextNodes = currentNodes
                     .filter(n => !childIds.has(n.id))
                     .map(n => n.id === nodeId ? { ...n, data: { ...n.data, expanded: false } } : n);
-                
+
                 setEdges((eds) => {
-                     const filtered = eds.filter(e => !childIds.has(e.source) && !childIds.has(e.target));
-                     persistChanges(nextNodes, filtered, repoAnalysis);
-                     return filtered;
+                    const filtered = eds.filter(e => !childIds.has(e.source) && !childIds.has(e.target));
+                    persistChanges(nextNodes, filtered, repoAnalysis);
+                    return filtered;
                 });
 
                 return nextNodes;
@@ -124,9 +124,9 @@ const FlowArea = () => {
                 const newChildrenPaths = Array.from(immediateChildren).filter(p => !existingPaths.has(p));
 
                 if (newChildrenPaths.length === 0) {
-                     nextNodes = currentNodes.map(n => n.id === nodeId ? { ...n, data: { ...n.data, expanded: true } } : n);
-                     persistChanges(nextNodes, nextEdges, repoAnalysis);
-                     return nextNodes;
+                    nextNodes = currentNodes.map(n => n.id === nodeId ? { ...n, data: { ...n.data, expanded: true } } : n);
+                    persistChanges(nextNodes, nextEdges, repoAnalysis);
+                    return nextNodes;
                 }
 
                 const newNodes: RepoNode[] = newChildrenPaths.map((path, index) => {
@@ -135,7 +135,7 @@ const FlowArea = () => {
                     const type = isFolder ? 'folder' : label.endsWith('.json') ? 'config' : 'file';
                     const extension = label.includes('.') ? label.split('.').pop() : '';
                     const count = newChildrenPaths.length;
-                    const radius = Math.max(300, count * 30); 
+                    const radius = Math.max(300, count * 30);
                     const angleStep = (Math.PI * 1.5) / Math.max(1, count - 1);
                     const startAngle = -Math.PI / 4;
                     const angle = startAngle + (index * angleStep);
@@ -153,7 +153,7 @@ const FlowArea = () => {
                             files: [], url: `https://github.com/${repoAnalysis.repoName}/${isFolder ? 'tree' : 'blob'}/main/${encodeURIComponent(path)}`,
                             reasoning: 'Expanded from parent', expanded: false,
                             analysisCache: {}, dimmed: false,
-                            onAnalyze: () => {}, onExpand: handleNodeExpand
+                            onAnalyze: () => { }, onExpand: handleNodeExpand
                         }
                     };
                 });
@@ -167,13 +167,13 @@ const FlowArea = () => {
                 }));
 
                 nextNodes = [...currentNodes.map(n => n.id === nodeId ? { ...n, data: { ...n.data, expanded: true } } : n), ...newNodes];
-                
+
                 setEdges(eds => {
                     const combined = [...eds, ...newEdgesList];
                     persistChanges(nextNodes, combined, repoAnalysis);
                     return combined;
                 });
-                
+
                 return nextNodes;
             }
         });
@@ -181,13 +181,13 @@ const FlowArea = () => {
 
     const handleDeepAnalyze = async (node: RepoNode, mode: AnalysisMode) => {
         if (!repoAnalysis) return;
-        
+
         try {
             // Perform analysis (will return a string, even if it's an error message)
             const explanation = await generateDeepAnalysis(
-                repoAnalysis.repoName, 
-                repoAnalysis.defaultBranch, 
-                node.data.fullPath || node.data.label, 
+                repoAnalysis.repoName,
+                repoAnalysis.defaultBranch,
+                node.data.fullPath || node.data.label,
                 node.data.type,
                 mode
             );
@@ -197,12 +197,12 @@ const FlowArea = () => {
             setNodes((nds) => {
                 updatedNodes = nds.map(n => {
                     if (n.id === node.id) {
-                        return { 
-                            ...n, 
-                            data: { 
-                                ...n.data, 
+                        return {
+                            ...n,
+                            data: {
+                                ...n.data,
                                 analysisCache: { ...n.data.analysisCache, [mode]: explanation }
-                            } 
+                            }
                         };
                     }
                     return n;
@@ -248,7 +248,8 @@ const FlowArea = () => {
             setTimeout(() => fitView({ duration: 800 }), 100);
         } catch (err) {
             console.error(err);
-            setError("Failed to analyze repository. Check API Key or Try again.");
+            const message = err instanceof Error ? err.message : "Failed to analyze repository.";
+            setError(message);
         } finally {
             setIsLoading(false);
         }
@@ -260,10 +261,10 @@ const FlowArea = () => {
         setSearchResult(null); // Clear previous
 
         const result = await semanticSearch(query, nodes, repoAnalysis?.fileMap);
-        
+
         if (result && result.nodeId) {
             setSearchResult(result);
-            
+
             // FOCUS MODE: Dim unrelated nodes
             const pathSet = new Set(result.path || []);
             pathSet.add(result.nodeId);
@@ -281,13 +282,13 @@ const FlowArea = () => {
             if (targetNodes.length > 0) {
                 fitView({ nodes: targetNodes, duration: 1200, minZoom: 0.5, maxZoom: 1.5, padding: 0.2 });
             }
-            
+
             const mainNode = nodes.find(n => n.id === result.nodeId);
-            if(mainNode) setSelectedNode(mainNode);
+            if (mainNode) setSelectedNode(mainNode);
 
             // Auto-Reset Dimming after 15s
             setTimeout(() => {
-                 setNodes(nds => nds.map(n => ({ ...n, data: { ...n.data, dimmed: false } })));
+                setNodes(nds => nds.map(n => ({ ...n, data: { ...n.data, dimmed: false } })));
             }, 15000);
         }
         setIsSearching(false);
@@ -362,7 +363,7 @@ const FlowArea = () => {
                             {MOCK_REPO_SUGGESTIONS.map(repo => (
                                 <button key={repo} onClick={() => handleAnalyze(repo)} className="text-xs bg-slate-900 border border-slate-800 text-slate-400 px-3 py-1 rounded-full hover:border-blue-500 hover:text-blue-400 transition-all">{repo}</button>
                             ))}
-                             <button onClick={() => handleAnalyze("CodeWithHarry/100-days-of-code-youtube")} className="text-xs bg-slate-900 border border-slate-800 text-amber-400 px-3 py-1 rounded-full hover:border-amber-500 transition-all">100-Days-Python</button>
+                            <button onClick={() => handleAnalyze("CodeWithHarry/100-days-of-code-youtube")} className="text-xs bg-slate-900 border border-slate-800 text-amber-400 px-3 py-1 rounded-full hover:border-amber-500 transition-all">100-Days-Python</button>
                         </div>
                     )}
                     {error && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded flex items-center gap-2 justify-center text-sm"><AlertCircle size={16} /> {error}</div>}
@@ -379,10 +380,10 @@ const FlowArea = () => {
                 <div className="absolute top-0 left-0 right-0 z-10 pointer-events-none p-4 flex justify-between items-start">
                     <div className="pointer-events-auto flex items-center gap-2">
                         <div className="bg-slate-900/80 backdrop-blur border border-slate-700 text-slate-300 px-4 py-2 rounded-full text-sm font-mono flex items-center gap-2 shadow-lg">
-                             <Github size={14} /> {repoAnalysis?.repoName} <button onClick={() => setRepoAnalysis(null)} className="ml-2 text-slate-500 hover:text-white">change</button>
+                            <Github size={14} /> {repoAnalysis?.repoName} <button onClick={() => setRepoAnalysis(null)} className="ml-2 text-slate-500 hover:text-white">change</button>
                         </div>
                         <button onClick={() => setShowAnalysisInfo(true)} className="bg-slate-900/80 backdrop-blur border border-slate-700 text-slate-300 p-2 rounded-full hover:bg-slate-800 hover:text-white transition-colors shadow-lg" title="How it works"><Info size={16} /></button>
-                         <div className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium transition-all duration-500 border shadow-lg ${isSaving ? 'bg-green-500/10 text-green-400 border-green-500/30 opacity-100' : 'bg-slate-900/80 text-slate-500 border-slate-700 opacity-50'}`}>
+                        <div className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium transition-all duration-500 border shadow-lg ${isSaving ? 'bg-green-500/10 text-green-400 border-green-500/30 opacity-100' : 'bg-slate-900/80 text-slate-500 border-slate-700 opacity-50'}`}>
                             {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Database size={14} />}
                             {isSaving ? "Auto-saving..." : "Synced"}
                         </div>
@@ -412,9 +413,9 @@ const FlowArea = () => {
 };
 
 export default function App() {
-  return (
-    <ReactFlowProvider>
-        <FlowArea />
-    </ReactFlowProvider>
-  );
+    return (
+        <ReactFlowProvider>
+            <FlowArea />
+        </ReactFlowProvider>
+    );
 }
