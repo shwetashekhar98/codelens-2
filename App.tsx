@@ -15,6 +15,7 @@ import ReactFlow, {
     useReactFlow,
     MarkerType
 } from 'reactflow';
+import 'reactflow/dist/style.css';
 
 import CustomNode from './components/CustomNode';
 import Sidebar from './components/Sidebar';
